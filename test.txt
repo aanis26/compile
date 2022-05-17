@@ -1,0 +1,25 @@
+< ! docprogram prog1>
+
+< SUB VARIABLE >
+
+< x | y | s   AS INT /> ;
+< ARRAY AS INT >
+<table:7/>
+<tab:40/>
+</ARRAY>
+< SUB CONSTANTE > 
+<aez =10/>;
+<aez =10/>;
+< yasser | bro AS INT / >;
+</SUB CONSTANTE >  
+
+</ SUB VARIABLE >
+
+<body>
+<AFF: yo,OR(40,10,4,10,5)/>
+<INPUT: b " $"   />
+
+</body>
+</docprogram>
+
+
