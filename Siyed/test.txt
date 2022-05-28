@@ -1,0 +1,93 @@
+<! docprogramIDpro > #comment!
+  	 # ----------- Declaration des variable -------------- !
+   <SUB VARIABLE>
+
+
+       # ------------ Declaration simple ---------------- !
+      <Xy INT/>;
+      <Yy INT/>;
+
+
+      # -------------- Declaration multiple ---------- !
+      <Vg | Hj FLT/>;
+
+
+      # ----------------- Declaration Array ----------- !
+      <ARRAY INT>
+        <Sd : 15 />
+      </ARRAY>
+
+
+       # ----------------- Declaration constante -------- !
+      <SUB CONSTANTE>
+         <Fgg = (10) />;
+         <Ss= "string try" />;
+         <Ghy = 'c' />;
+         <Cstt STR/>;
+      </SUB CONSTANTE>
+
+
+   </SUB VARIABLE>
+   # ------------------- Fin Declaration Var ----------- !
+
+
+   <body>
+
+ 
+       # ------------ INSTRUCTION ------------------ !
+      <AFF : Xy,5 />
+
+
+       # ------------- ERROR: XGG non declare : ----- !
+      <AFF : XGG ,'c'/>
+
+       # ------------- Affectation expression ------- !
+      <AFF : Xy , ( Xy + ( 5 * Ghy ) ) / ( 6 - 9 ) />
+
+       # ---------- ERROR: division par 0 ------------ !
+      <AFF : Yy , 6/0 />
+
+       # -------------- INPUT valide -------------- !
+      <INPUT : Xy "$" />
+
+
+       # ----------- ERROR: signe de formatage faut ---- !
+      <INPUT : Xy "#" />
+
+
+       # ---------------- OUTPUT ---------------- !
+      <OUTPUT : "$" + Xy + "&" + Ghy />
+
+
+       # ------------ BOUCLE imbriqué ------------ !
+      <DO>
+          <AFF : Xy , ( Xy + ( 5 * Ghy ) ) / ( 6 - 9 ) />
+          <DO>
+              <INPUT : XY "$" />
+          <WHILE : NOT ( OR ( 6 / 6 ) ) />
+          </DO>
+      <WHILE : AND ( EGA ( 5 , 5 ) ) />
+      </DO>
+
+
+       # --------- IF sans ELSE ---------------- !
+      <IF : NOT ( Xy ) >
+      <THEN>
+           <OUTPUT : "$" + Yy />
+      </THEN>
+      </IF> 
+
+
+      # ---------------- IF avec ELSE -------- !
+      <IF : NOT ( Xy ) >
+      <THEN>
+           <OUTPUT : "$" + Yy />
+      </THEN>
+      <ELSE>
+           <AFF : XGG , 'd' />
+      </ELSE>
+      </IF> 
+
+
+   </body>
+</docprogram>
