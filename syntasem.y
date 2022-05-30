@@ -25,15 +25,15 @@
 %token divfini mc_entier mc_reel mc_bool mc_car mc_str bool tabb ttype cst et ou no sup supe inf infe ega dif aff
 %token entre sorti decv decvar body as aprdeb start finish si alors sinon doo pour tantque jusqua debut 
 <nom>ID sep <integer>entier_pos <integer>entier_neg reel car str plus  moins mul parouv parfer croch1 croch2 deuxpoint
-%token formabol formachr formaflt formaint formastr fin egale virgule doublecot msg noteq doubleegale
+%token formabol formachr formaflt formaint formastr fin egale virgule doublecot msg
 %type <nom> listvar
 
 %left ou
 %left et
-%left sup inf supe infe doubleegale noteq
 %left plus moins
-%left mul divfini
+%left mul 
 %left no
+%left sup inf supe infe
 %left '(' ')'
 
 %start S
@@ -143,14 +143,11 @@ debinst: start body finish
 // </body>
 fininst: start divfini body finish
 ;
+//?--------------------------1)Affectation--------------------------------------------------
 partie_instruction: partie_instruction inst_aff 
 				  |partie_instruction inst_entree
-				  |partie_instruction inst_sortie
-				  |partie_instruction cdt_if
 				  |
 ;
-
-//?--------------------------1)Affectation--------------------------------------------------
 inst_aff: start aff deuxpoint variable virgule exp divfini finish
 ;
 
@@ -173,13 +170,11 @@ exp_arith: exp_arith plus exp_arith
 		 | car
 		 | str
 		 | case_tab
-
 ;
 
-exp_log: et parouv list_exp_arith parfer
-	   | et parouv list_comparaison parfer
+exp_log: et parouv  list_exp_arith parfer
 	   | no parouv exp_log parfer
-	   | ou parouv list_exp_arith parfer	 
+	   | ou parouv list_exp_arith parfer
 ;
 
 list_exp_arith: list_exp_arith virgule exp_arith
@@ -191,32 +186,11 @@ list_exp_arith: list_exp_arith virgule exp_arith
 //todo add case when ID is vide (empty msg)
 inst_entree : start entre deuxpoint ID doublecot ID sign_forma doublecot divfini finish
 ;
-inst_sortie : start sorti deuxpoint list_sortie divfini finish
-;
-list_sortie:  doublecot ID sign_forma doublecot plus ID plus list_sortie
-		   |  doublecot ID sign_forma doublecot plus ID
+inst_sortie : start sorti deuxpoint doublecot ID sign_forma doublecot divfini finish
 ;
 //?--------------------------3)Condition IF-------------------------------------------------
-cdt_if: start si deuxpoint ID finish start alors finish partie_instruction start divfini alors finish bloc_else start divfini si finish
-	  |start si deuxpoint ID finish start alors finish partie_instruction start divfini alors finish start divfini si finish
-;
-bloc_else: start sinon finish partie_instruction start divfini sinon finish
-;
 //?--------------------------4)Boucle-------------------------------------------------------
 
-//?--------------------------5)Conditions---------------------------------------------------
-
-comparaison : sup parouv exp_arith virgule exp_arith parfer
-			| inf parouv exp_arith virgule exp_arith parfer
-			| supe parouv exp_arith virgule exp_arith parfer
-			| infe parouv exp_arith virgule exp_arith parfer
-			| ega parouv exp_arith virgule exp_arith parfer
-			| dif parouv exp_arith virgule exp_arith parfer
-;
-
-list_comparaison : comparaison virgule comparaison 
-			     | list_comparaison virgule comparaison
-;
 sign_forma: formaint 
           | formabol 
 		  | formachr 
@@ -243,7 +217,7 @@ fclose(yyin);
 // // yyparse();
 // // // afficher();
 }
-void yywrap(){}
+yywrap(){}
 int yyerror ( char*  msg ){
 	printf ("Erreur Syntaxique a ligne %d a colonne %d \n",ligne,col);
 }

@@ -16,16 +16,9 @@
 </ SUB VARIABLE >
 
 <body>
+<AFF: yo,OR(40,10,4,10,5)/>
+<INPUT: b " $"   />
 
-<INPUT: b " a$"   />
-<OUTPUT: " hello $"+a+"there $"+b  />
-<IF: yasser>
-<THEN>
-<AFF: yo,AND(SUP(4,2),a)/>
-</THEN>
-<ELSE>
-</ELSE>
-</IF>
 </body>
 </docprogram>
 

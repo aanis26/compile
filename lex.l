@@ -4,8 +4,8 @@
 	#include <string.h>
 	#include "syntasem.tab.h"
 	#include "tables.h"
-	extern int ligne;
-	extern int col;
+	extern ligne;
+	extern col;
 	extern YYSTYPE yylval;
 	int i;
 %}
@@ -66,7 +66,6 @@ formaflt "%"
 formastr "#"
 formachr "&"
 formabol "@"
-
 si "IF"
 alors "THEN"
 sinon "ELSE"
@@ -153,8 +152,6 @@ esp   [ \t]+
 "["          {col= col + yyleng; printf("entité reconnu %s \n",yytext); return croch1;}
 "]"          {col= col + yyleng; printf("entité reconnu %s \n",yytext); return croch2;}
 \"         {col= col + yyleng; printf("entité reconnu %s \n",yytext); return doublecot;}
-"!="        {col= col + yyleng; printf("entité reconnu %s \n",yytext); return noteq;}
-"==" {col= col + yyleng; printf("entité reconnu %s \n",yytext); return doubleegale;}
 {deuxpoint} {   col= col + yyleng; printf("entité reconnu %s \n",yytext);  return deuxpoint; }
 
 {formabol} {   col= col + yyleng; printf("entité reconnu %s \n",yytext);  return formabol; }
