@@ -100,7 +100,9 @@
      egale = 316,
      virgule = 317,
      doublecot = 318,
-     msg = 319
+     msg = 319,
+     noteq = 320,
+     doubleegale = 321
    };
 #endif
 
@@ -123,7 +125,7 @@ typedef union YYSTYPE
 
 
 /* Line 1676 of yacc.c  */
-#line 127 "syntasem.tab.h"
+#line 129 "syntasem.tab.h"
 } YYSTYPE;
 # define YYSTYPE_IS_TRIVIAL 1
 # define yystype YYSTYPE /* obsolescent; will be withdrawn */
