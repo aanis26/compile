@@ -1,223 +1,294 @@
 %{
-	#include <stdio.h>
-    #include <string.h>
-    #include <stdlib.h>
-    #include "tess.h"
-    #include "RS.h"
-	extern FILE* yyin;
-    int yylex();
-    int yyerror(char *);
-	int ligne=1, col=1; 
-	char sauvIDFs [50][50];
-	int tablength = 0;
+	#include<stdlib.h>
+	#include<stdio.h>
+	int nbligne = 1;
+	int col = 1;
+	char temp[30];
+	int cstVal;
+	char sauvAffType[30] = "";
+	char sauvType[20] = "";
+	char *sauv;
+	int sauvIf[100],sauvIfFin[100],debWhile[100],debFOR[100];
+	int sauvIfP=0,sauvIfFinP=0,debWhileP=0,debFORP=0;
+
+	void push(int* tab,int*pos,int val){
+
+		tab[*pos]=val;
+		*pos=*pos+1;
+	}
+	int pop(int* tab,int* pos){
+
+		*pos=*pos-1;
+		return tab[*pos];
+	}
+
+	int tmp = -1;
+	int cpt = 0;
+	int cptSF = 0;
+	int cptIDF = 0;
+	char buffer[50];
+	char tabSF[30][10];
+	char tabIDF[30][10];
+	int activesigne = 0;
 	
+	extern int yylineno;
+	int processToggle = 0, arrayToggle = 0, loopToggle = 0;
+	
+	// quad variables
+	int qc=0;
+	char tmpq[20];
+	int deb_while;
 %}
 
-%union{
-	char* nom;
-	int integer;
-    struct{
-		int type;
-        char* res;
-    }NT;
+%union 
+{ 
+   int entier; 
+   char* str;
+   float reelf;
+   
 }
+%type <str>CST_VALEUR 
+%type <str>COND COND_STRT  COND_ARG IDF_SWITCH LIST_EXP LIST_EXP_ARITHM 
+%type <str>COND_CMP_LOG
 
-%token divfini mc_entier mc_reel mc_bool mc_car mc_str bool tabb ttype cst et ou no sup supe inf infe ega dif aff
-%token entre sorti decv decvar body as aprdeb start finish si alors sinon doo pour tantque jusqua debut 
-<nom>ID sep <integer>entier_pos <integer>entier_neg reel car str plus  moins mul parouv parfer croch1 croch2 deuxpoint
-%token formabol formachr formaflt formaint formastr fin egale virgule doublecot msg
-%type <nom> listvar
 
-%left ou
-%left et
-%left plus moins
-%left mul 
-%left no
-%left sup inf supe infe
-%left '(' ')'
+%token 	op_tag close_tag strt_tag end_tag op_doc end_doc sb mc_var mc_cnst body
+		mc_array tint treel tchar tstring tbool as dp 
+		mc_aff vg mc_do mc_for mc_until
+		mc_affstrt  mc_ifstrt mc_thenstrt mc_elsestrt mc_forstrt mc_dostrt readd writee
+		tcst pvg  cros croe
+		prnts prnte pipe  forint forreal
+		forstr forchar forbool   qot <str>mc_and <str>mc_or mc_if mc_else 
+		mc_not mc_then <str>egal <str>inf <str>sup <str>infe <str>supe <str>diff mc_while 
+		true false <str>idf <str>cst ent <str>flt <str>ch <str>strr msg egg
 
-%start S
+
+
+%left  add dec 
+%left  mult divi
+
+
+
 %%
-// [✔] : Exists 
-// [✘] : Doesn't exist
-
 
 // !------------------------------Main Programme----------------------------------------
-	// * Partie declaration [✔] Partie instruction [✘]
-S:	|debutprogramme  debvar partie_declaration finvar finprogramme 
-	{printf(" Le programme est correcte syntaxiquement\n");}
-	// * Partie declaration [✘] Partie instruction [✔]
-	|debutprogramme  debinst partie_instruction fininst finprogramme 
-	{printf(" Le programme est correcte syntaxiquement\n");}
-	// * Partie declaration [✔] Partie instruction [✔]
-    |debutprogramme debvar partie_declaration finvar debinst partie_instruction fininst finprogramme 
-	{printf(" Le programme est correcte syntaxiquement\n");}
-	// * Partie declaration [✘] Partie instruction [✘] 
-    |debutprogramme  finprogramme 
-	{printf(" Le programme est correcte syntaxiquement\n");}
+
+S  : debutprogramme partie_declaration  partie_instruction fin_body finprogramme
+        {printf("\n\t ___ La Syntaxe Est Correcte ! ___ \n\n");
+        YYACCEPT;}
 ;
 
-// !--------------------------------------------------------------------------------------
-// <!docprogram ID_program>
-debutprogramme:  start aprdeb debut ID finish
+partie_declaration: op_tag sb list_var  partie_declaration
+		| op_tag sb DEC_CSTS partie_declaration
+		| op_tag debut_body
 ;
-//</docprogram>
-finprogramme: start divfini debut finish
+debutprogramme: op_tag op_doc idf close_tag
+;
+
+finprogramme: strt_tag end_doc close_tag
 ;
 
 // !-----------------------------Partie Declaration---------------------------------------
-// <SUB VARIABLE> 
-debvar: start decv decvar finish
+list_var : start_partie_var list_dec end_partie_var
 ;
-// </SUB VARIABLE >
-finvar: start divfini decv decvar finish
+start_partie_var: mc_var close_tag
 ;
-// partie declaration des variables
-partie_declaration:	partie_declaration dec_variable 
-				  | partie_declaration dec_table
-				  | partie_declaration dec_cst
-				  |
+end_partie_var: strt_tag sb mc_var close_tag
 ;
 
-//?--------------------------1)Declaration des variables----------------------------------- 
-// < nom_variable AS TYPE />; < Liste_variable AS TYPE /> ;
-// // dec_variable: start listvar as mc_bool divfini finish fin 
-// //          	| start listvar as mc_car divfini finish fin
-// // 		    | start listvar as mc_entier divfini finish fin 
-// // 		 	| start listvar as mc_reel divfini finish fin
-// // 			| start listvar as mc_str divfini finish fin
-// // ;
-dec_variable: start listvar as list_types divfini finish fin {
-	int j = 0;
-	for(j = 0;j<tablength;j++){
-		printf("[ %s ]\t",sauvIDFs[j]);
-	}
-	}
+list_dec : dec_var list_dec
+		 | dec_var
 ;
-// <nom_variable | nom_variable2 AS TYPE />; < nom_variable AS TYPE /> ;
-listvar: ID  sep  listvar
-	   | ID 
-;	
 
-//?--------------------------2)Declaration des tables-------------------------------------- 
-/* 
-    <ARRAY AS TYPE >
-	<nom_tableau1: taille1/>
-	<nom_tableau2: taille2/>
-	………
-   </ARRAY> 
-*/
-//todo: add other types
-dec_table: start tabb as mc_entier finish list_tab_variable start divfini tabb finish
-		 | start tabb as mc_bool finish list_tab_variable start divfini tabb finish
+dec_var : op_tag LISTE_IDF as TYPE {insererType(temp);} end_tag pvg
+		| op_tag mc_array as TYPE close_tag LIST_ARRAY {insererType(temp);} strt_tag mc_array close_tag
 ;
-//<nom_tableau1: taille1/>
-list_tab_variable: list_tab_variable start ID deuxpoint entier_pos divfini finish {printf("entier : %d",$4);}
-				 |
-; 
 
-//?--------------------------3)Declaration des constants-----------------------------------
-/* 
-   <SUB CONSTANTE>
-   <nom_constante1 = valeur/>;
-   <nom_constante1 = valeur/>;
-   </SUB CONSTANTE> 
-*/
-dec_cst : start decv cst finish list_cst start divfini decv cst finish
+TYPE : tint { strcpy(temp,"ENTIER");}
+	 | treel { strcpy(temp,"REEL");}
+	 | tchar { strcpy(temp,"CHAR");}
+	 | tstring { strcpy(temp,"STRING");}
+	 | tbool { strcpy(temp,"BOOL");}
 ;
-//todo : add other types like char and string
-		// <nom_constante1 = valeur/>; 
-list_cst: list_cst start ID egale entier_pos divfini finish fin
-		//<nom_constante1 AS TYPE /> ;
-        | list_cst start listcst as mc_entier divfini finish fin
-        |
+
+// ? x | y | z 
+LISTE_IDF : idf pipe LISTE_IDF  {inserer($1,"idf");}
+		  | idf {inserer($1,"idf");}
 ;
-// <nom_constante1 AS TYPE />; <Liste_constante2 AS TYPE/>;
-listcst: ID sep  listcst
-       | ID
-;		 
+
+LIST_ARRAY : op_tag idf dp cst end_tag { inserer($2,"idf"); insertTable($2,"Table",$4);} LIST_ARRAY 
+		   | 
+;
+
+//?--------------------------Declaration des constants-----------------------------------
+DEC_CSTS : START_CST_PART CSTS END_CST_PART
+;
+
+START_CST_PART:  mc_cnst close_tag
+;
+
+END_CST_PART: strt_tag sb mc_cnst close_tag
+;
+
+CSTS : CST_DEC_TYPE CSTS
+	 |
+;
+// <nom_constante1 = valeur/>;  <nom_constante1 AS TYPE /> ;
+CST_DEC_TYPE: VAL_CST
+		    | TYPE_CST
+;
+
+// ? <nom_constante1 = valeur/>;
+VAL_CST : op_tag idf egg {inserer($2,"CST");} CST_VALEUR {insererType(temp);insererVal($2,$5);}  end_tag pvg
+;
+
+CST_VALEUR  : flt {strcpy(temp,"REEL"); $$=$1;}
+		    |cst {strcpy(temp,"ENTIER"); $$=$1;}
+		    |ent {strcpy(temp,"ENTIER"); $$=$1;}
+		    |ch {strcpy(temp,"CHAR"); $$=$1;}
+		    |strr {strcpy(temp,"STRING"); $$=$1;}
+		    |true {strcpy(temp,"BOOL"); $$=$1;}
+		    |false {strcpy(temp,"BOOL"); $$=$1;} 
+;
+
+// <nom_constante1 AS TYPE /> ;
+TYPE_CST :  op_tag LISTE_CST as TYPE {insererType(temp);} end_tag pvg
+;
+
+LISTE_CST : idf pipe  LISTE_CST {inserer($1,"CST");}
+		  | idf  {inserer($1,"CST");}
+;
+
 // !-----------------------------Partie Instructions---------------------------------------
-// <body>
-debinst: start body finish
+debut_body: body close_tag
 ;
-// </body>
-fininst: start divfini body finish
+
+fin_body: strt_tag  body close_tag
 ;
+
+partie_instruction : mc_affstrt AFFECTATION partie_instruction
+		| readd INPUT partie_instruction
+		| writee OUTPUT  partie_instruction
+		| mc_dostrt WHILE partie_instruction
+		| mc_forstrt FOR partie_instruction
+		| CONDITION partie_instruction
+		|
+;
+
 //?--------------------------1)Affectation--------------------------------------------------
-partie_instruction: partie_instruction inst_aff 
-				  |partie_instruction inst_entree
-				  |
+
+AFFECTATION :  dp IDF_SWITCH vg LIST_EXP end_tag {TypeCheck("AFF",$2,$4);checkCST($2);quadr("AFF",$4,"",$2);}
 ;
-inst_aff: start aff deuxpoint variable virgule exp divfini finish
+// nrml idf or tab !
+IDF_SWITCH : idf {checkDeclaration($1);  $$=$1;}
+	       | idf cros cst croe {
+			 checkDeclaration($1); checkOverFlowTab($1,$3);
+			 if(atoi($3)>tabTaille($1)){printf("Erreur semantique : vous avez depassé la taille du tableau !\n");}
+	        }
 ;
 
-variable: ID
-        | case_tab	
+LIST_EXP : LIST_EXP_ARITHM {$$=$1;}
+		 | COND_STRT {$$=$1;}
 ;
 
-exp: exp_log
-   | exp_arith
-;
-//todo : add / the operation 
-exp_arith: exp_arith plus exp_arith 
-		 | exp_arith  moins exp_arith
-		 | exp_arith  mul exp_arith
-		 | ID
-		 | entier_pos
-		 | entier_neg
-		 | reel
-		 | parouv exp_arith parfer	
-		 | car
-		 | str
-		 | case_tab
+LIST_EXP_ARITHM : COND_ARG {$$=$1;}
+		        | LIST_EXP_ARITHM  add LIST_EXP_ARITHM  {TypeCheck("ADD",$1,$3);sauv=(char*) generateNameNUM();$$=sauv;quadr("ADD",$1,$3,sauv);}
+		  		| LIST_EXP_ARITHM  dec LIST_EXP_ARITHM  {TypeCheck("DEC",$1,$3);sauv=(char*) generateNameNUM();$$=sauv;quadr("DEC",$1,$3,sauv);}
+				| LIST_EXP_ARITHM  mult LIST_EXP_ARITHM {TypeCheck("MUL",$1,$3);sauv=(char*) generateNameNUM();$$=sauv;quadr("MUL",$1,$3,sauv);}
+				| LIST_EXP_ARITHM  divi LIST_EXP_ARITHM {TypeCheck("DIV",$1,$3);sauv=(char*) generateNameNUM();$$=sauv;quadr("DIV",$1,$3,sauv);}		
+				| prnts LIST_EXP_ARITHM prnte {$$=$2;}
 ;
 
-exp_log: et parouv  list_exp_arith parfer
-	   | no parouv exp_log parfer
-	   | ou parouv list_exp_arith parfer
+COND_STRT: COND_CMP_LOG prnts COND vg COND prnte {sauv=(char*) generateNameBOOL(); $$=sauv;TypeCheck($1,$3,$5);quadr($1,$3,$5,sauv);}
 ;
 
-list_exp_arith: list_exp_arith virgule exp_arith
-			  | exp_arith virgule exp_arith
+COND : COND_CMP_LOG prnts COND vg COND prnte {sauv=(char*) generateNameBOOL();$$=sauv;TypeCheck($1,$3,$5);quadr($1,$3,$5,sauv);}
+	|LIST_EXP_ARITHM {$$=$1;}
+	|mc_not prnts COND prnte {sauv=(char*) generateNameBOOL();$$=sauv;quadr("NOT",$3,"",sauv);}
 ;
 
-//?--------------------------2)Entrées/Sorties----------------------------------------------
-//todo : somehow , "yasser" is wrong ,  " yasser" wroks -_-
-//todo add case when ID is vide (empty msg)
-inst_entree : start entre deuxpoint ID doublecot ID sign_forma doublecot divfini finish
+COND_ARG : idf {checkDeclaration($1); $$=$1;}
+		| cst {$$=$1;}
+		| ent {$$=$1;}
+		| idf cros cst croe {checkDeclaration($1); $$=$1; checkOverFlowTab($1,$3);}
+		| strr {$$=$1;}
+		| ch {$$=$1;}
+		| flt {$$=$1;}
+		| true {$$=$1; }
+		| false {$$=$1; }
 ;
-inst_sortie : start sorti deuxpoint doublecot ID sign_forma doublecot divfini finish
-;
-//?--------------------------3)Condition IF-------------------------------------------------
-//?--------------------------4)Boucle-------------------------------------------------------
 
-sign_forma: formaint 
-          | formabol 
-		  | formachr 
-		  | formaflt 
-		  | formastr
+//?--------------------------)Boucle-------------------------------------------------------
+
+WHILE :  {push(debWhile,&debWhileP,qc);}
+		 close_tag  partie_instruction  op_tag mc_while dp COND end_tag strt_tag mc_do close_tag 
+		 {quadr("BNZ",itoa(pop(debWhile,&debWhileP),buffer,10),$7,"");}
 ;
-list_types : mc_entier {} 
-			| mc_bool {} 
+
+FOR: IDF_SWITCH egg COND_ARG  mc_until COND_ARG
+     {quadr("AFF",$3,"",$1);sauv=(char*) generateNameBOOL(); push(debFOR,&debFORP,qc); quadr("EGG",$1,$5,sauv);quadr("BNZ","ENDFOR",sauv,"");}
+	 close_tag partie_instruction strt_tag mc_for close_tag 
+	 {quadr("INC","","",$1); quadr("BR",itoa(pop(debFOR,&debFORP),buffer,10),"","");ajour_quad(debFOR[debFORP]+1,1,itoa(qc,buffer,10));}
 ;
-case_tab : ID croch1 ID croch2
-			 | ID croch1 entier_pos croch2 		 
+
+
+COND_CMP_LOG : sup {$$=strdup("SUP");}
+			 | supe {$$=strdup("SUPE");}
+		     | egal {strdup("EGG");}
+		     | diff {$$=strdup("DIF");}
+		     | infe {$$=strdup("INFE");}
+		     | inf {$$=strdup("INF");}
+		     | mc_and {$$=strdup("AND");}
+		     | mc_or {$$=strdup("OR");}
 ;
+//?--------------------------)Condition IF-------------------------------------------------
+
+CONDITION :  mc_ifstrt dp COND {push(sauvIf,&sauvIfP,qc);quadr("BZ","ELSE",$3,"");} close_tag 
+			THEN {push(sauvIfFin,&sauvIfFinP,qc);} 
+			ELSE strt_tag  mc_if close_tag
+;
+THEN : mc_thenstrt close_tag  partie_instruction strt_tag  mc_then close_tag
+;
+
+ELSE:	{quadr("BR","FIN","","");ajour_quad(pop(sauvIf,&sauvIfP),1,itoa(qc,buffer,10));}
+		mc_elsestrt close_tag partie_instruction strt_tag  mc_else close_tag 
+		{ajour_quad(pop(sauvIfFin,&sauvIfFinP),1,itoa(qc,buffer,10));}
+
+	|	{ajour_quad(pop(sauvIf,&sauvIfP),1,itoa(qc,buffer,10));}
+;
+
+
+
+//?--------------------------)ENTREE/SORTIE-------------------------------------------------
+
+INPUT: dp IDF_SWITCH strr end_tag
+;
+
+OUTPUT: dp MSG end_tag
+;
+
+MSG :strr  
+	|strr add IDF_SWITCH 
+	|strr add MSG
+	|strr add IDF_SWITCH add MSG 
+;
+
+//! --------------------------)FIN-------------------------------------------------
+
 %%
-main (){
-yyin =fopen ("test.txt" ,"r");
-init();
-yyparse();
-afficherTS();
-// // afficherQuad();
-affii();
-fclose(yyin);	
-// // initialisation();
-// // // afficher();
-// // yyparse();
-// // // afficher();
+main () 
+{
+	/* initialisation(); */
+	yyparse();
+	/* afficher(); */
+	afficher_qdr();
+	optimisation(); 
+	afficher();
+	afficher_qdr(); 
 }
-yywrap(){}
-int yyerror ( char*  msg ){
-	printf ("Erreur Syntaxique a ligne %d a colonne %d \n",ligne,col);
+yywrap()
+{}
+yyerror (char* msg)
+{
+	printf("\nErreur Syntaxique a la ligne %d et a la colonne %d \n\n",nb_ligne,nbcol);
 }
