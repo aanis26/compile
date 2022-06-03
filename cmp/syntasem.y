@@ -290,5 +290,5 @@ yywrap()
 {}
 yyerror (char* msg)
 {
-	printf("\nErreur Syntaxique a la ligne %d et a la colonne %d \n\n",nb_ligne,nbcol);
+	printf("\nErreur Syntaxique a la ligne %d et a la colonne %d \n\n",nbligne,col);
 }
