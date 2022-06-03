@@ -1,0 +1,8 @@
+<!docprogram IDpro > 
+< SUB VARIABLE >
+< Xy AS INT /> ;
+</ SUB VARIABLE >
+<body>
+<AFF: Xy,5+9-3/>
+</body>
+</docprogram>
